@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>탭 카운터</title>
+
+<!-- 홈 화면 아이콘 관련 설정 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="탭 카운터">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#4f8cff">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+
+<style>
+  :root {
+    --bg: #0f1115;
+    --surface: #1a1d24;
+    --accent: #4f8cff;
+    --accent2: #34d399;
+    --danger: #ef4444;
+    --text: #f5f6f8;
+    --muted: #8b93a3;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    height: 100%;
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    overscroll-behavior: none;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+  #app {
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    padding: env(safe-area-inset-top, 12px) 16px 8px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  header h1 {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--muted);
+    margin: 8px 0 0;
+    letter-spacing: 0.5px;
+  }
+
+  #tapZone {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+  }
+  #tapZone.flash {
+    background: rgba(79, 140, 255, 0.15);
+  }
+  #tapZone.goalFlash {
+    background: rgba(52, 211, 153, 0.25);
+  }
+  #count {
+    font-size: 22vw;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    transition: transform 0.08s ease;
+  }
+  #count.bump { transform: scale(1.08); }
+  #hint {
+    margin-top: 12px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  #goalLine {
+    margin-top: 6px;
+    color: var(--accent2);
+    font-size: 15px;
+    font-weight: 600;
+    min-height: 20px;
+  }
+
+  #controls {
+    flex-shrink: 0;
+    padding: 12px 16px calc(env(safe-area-inset-bottom, 12px) + 12px);
+    background: var(--surface);
+    border-top: 1px solid #262a33;
+  }
+  .row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .row:last-child { margin-bottom: 0; }
+  .row label {
+    font-size: 13px;
+    color: var(--muted);
+    width: 62px;
+    flex-shrink: 0;
+  }
+  .row input[type="number"] {
+    flex: 1;
+    background: #0f1115;
+    border: 1px solid #2c3240;
+    color: var(--text);
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 16px;
+    width: 0;
+  }
+  .stepBtns {
+    display: flex;
+    gap: 6px;
+    flex: 1;
+  }
+  .stepBtns button {
+    flex: 1;
+    padding: 10px 0;
+    border-radius: 8px;
+    border: 1px solid #2c3240;
+    background: #0f1115;
+    color: var(--text);
+    font-size: 14px;
+  }
+  .stepBtns button.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+    font-weight: 700;
+  }
+  #resetBtn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--danger);
+    background: transparent;
+    color: var(--danger);
+    font-size: 15px;
+    font-weight: 600;
+  }
+  #resetBtn:active { background: rgba(239,68,68,0.15); }
+
+  select, input {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>화면을 탭하면 카운트가 올라갑니다</h1>
+  </header>
+
+  <div id="tapZone">
+    <div id="count">0</div>
+    <div id="hint">탭 1회 = <span id="stepHint">1</span> 증가</div>
+    <div id="goalLine"></div>
+  </div>
+
+  <div id="controls">
+    <div class="row">
+      <label>증가값</label>
+      <div class="stepBtns">
+        <button data-step="1">+1</button>
+        <button data-step="10">+10</button>
+        <button data-step="100">+100</button>
+      </div>
+      <input id="customStep" type="number" inputmode="numeric" placeholder="직접 입력" style="width:90px; flex:none;">
+    </div>
+    <div class="row">
+      <label>목표</label>
+      <input id="goalInput" type="number" inputmode="numeric" placeholder="목표 횟수 (선택)">
+    </div>
+    <div class="row">
+      <button id="resetBtn">리셋 (0으로)</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var countEl = document.getElementById('count');
+  var tapZone = document.getElementById('tapZone');
+  var stepHint = document.getElementById('stepHint');
+  var goalLine = document.getElementById('goalLine');
+  var goalInput = document.getElementById('goalInput');
+  var customStep = document.getElementById('customStep');
+  var resetBtn = document.getElementById('resetBtn');
+  var stepBtns = document.querySelectorAll('.stepBtns button');
+
+  var state = {
+    count: Number(localStorage.getItem('tc_count')) || 0,
+    step: Number(localStorage.getItem('tc_step')) || 1,
+    goal: localStorage.getItem('tc_goal') ? Number(localStorage.getItem('tc_goal')) : null,
+    goalHit: false
+  };
+
+  function save() {
+    localStorage.setItem('tc_count', state.count);
+    localStorage.setItem('tc_step', state.step);
+    if (state.goal !== null) localStorage.setItem('tc_goal', state.goal);
+    else localStorage.removeItem('tc_goal');
+  }
+
+  function vibrate(ms) {
+    if (navigator.vibrate) navigator.vibrate(ms);
+  }
+
+  function render() {
+    countEl.textContent = state.count;
+    stepHint.textContent = state.step;
+    stepBtns.forEach(function (b) {
+      b.classList.toggle('active', Number(b.dataset.step) === state.step);
+    });
+    if (state.goal !== null && state.goal > 0) {
+      var remaining = state.goal - state.count;
+      if (remaining <= 0) {
+        goalLine.textContent = '목표 달성! (' + state.goal + ')';
+      } else {
+        goalLine.textContent = '목표까지 ' + remaining + '회 남음 (목표 ' + state.goal + ')';
+      }
+    } else {
+      goalLine.textContent = '';
+    }
+  }
+
+  function bump() {
+    countEl.classList.remove('bump');
+    void countEl.offsetWidth;
+    countEl.classList.add('bump');
+  }
+
+  function checkGoal() {
+    if (state.goal !== null && state.goal > 0 && state.count >= state.goal && !state.goalHit) {
+      state.goalHit = true;
+      tapZone.classList.add('goalFlash');
+      vibrate([80, 60, 80, 60, 200]);
+      setTimeout(function () { tapZone.classList.remove('goalFlash'); }, 500);
+    }
+    if (state.goal === null || state.count < state.goal) {
+      state.goalHit = false;
+    }
+  }
+
+  function increment() {
+    state.count += state.step;
+    save();
+    render();
+    bump();
+    vibrate(15);
+    checkGoal();
+  }
+
+  tapZone.addEventListener('click', increment);
+
+  stepBtns.forEach(function (b) {
+    b.addEventListener('click', function (e) {
+      e.stopPropagation();
+      state.step = Number(b.dataset.step);
+      customStep.value = '';
+      save();
+      render();
+    });
+  });
+
+  customStep.addEventListener('click', function (e) { e.stopPropagation(); });
+  customStep.addEventListener('change', function () {
+    var v = parseInt(customStep.value, 10);
+    if (v && v > 0) {
+      state.step = v;
+      save();
+      render();
+    }
+  });
+
+  goalInput.value = state.goal !== null ? state.goal : '';
+  goalInput.addEventListener('click', function (e) { e.stopPropagation(); });
+  goalInput.addEventListener('change', function () {
+    var v = parseInt(goalInput.value, 10);
+    state.goal = (v && v > 0) ? v : null;
+    state.goalHit = false;
+    save();
+    render();
+  });
+
+  resetBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (confirm('카운트를 0으로 리셋할까요?')) {
+      state.count = 0;
+      state.goalHit = false;
+      save();
+      render();
+    }
+  });
+
+  render();
+
+  if ("serviceWorker" in navigator && (location.protocol === "http:" || location.protocol === "https:")) {
+    navigator.serviceWorker.register("sw.js").catch(function () {});
+  }
+})();
+</script>
+</body>
+</html>
