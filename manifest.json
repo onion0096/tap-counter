@@ -2,7 +2,7 @@
   "name": "탭 카운터",
   "short_name": "탭카운터",
   "description": "화면을 탭해서 테스트 횟수를 세는 카운터",
-  "start_url": "./tap-counter.html",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",

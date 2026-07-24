@@ -1,5 +1,5 @@
-const CACHE_NAME = "tap-counter-v1";
-const ASSETS = ["./tap-counter.html", "./manifest.json", "./icon.svg"];
+const CACHE_NAME = "tap-counter-v2";
+const ASSETS = ["./index.html", "./manifest.json", "./icon.svg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
