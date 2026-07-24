@@ -1,37 +1,24 @@
-var CACHE_NAME = 'tap-counter-v1';
-var ASSETS = [
-  './',
-  './index.html',
-  './manifest.json',
-  './icons/icon-192.png',
-  './icons/icon-512.png'
-];
+const CACHE_NAME = "tap-counter-v1";
+const ASSETS = ["./tap-counter.html", "./manifest.json", "./icon.svg"];
 
-self.addEventListener('install', function (event) {
+self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(function (cache) {
-      return cache.addAll(ASSETS);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
   self.skipWaiting();
 });
 
-self.addEventListener('activate', function (event) {
+self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then(function (keys) {
-      return Promise.all(
-        keys.filter(function (key) { return key !== CACHE_NAME; })
-            .map(function (key) { return caches.delete(key); })
-      );
-    })
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+    )
   );
   self.clients.claim();
 });
 
-self.addEventListener('fetch', function (event) {
+self.addEventListener("fetch", (event) => {
   event.respondWith(
-    caches.match(event.request).then(function (cached) {
-      return cached || fetch(event.request);
-    })
+    caches.match(event.request).then((cached) => cached || fetch(event.request))
   );
 });
