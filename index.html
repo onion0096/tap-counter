@@ -332,6 +332,7 @@
       customStep.value = '';
       save();
       render();
+      b.blur(); // 포커스가 버튼에 남으면 스페이스/엔터가 버튼을 재클릭할 뿐 카운트가 안 되므로 해제
     });
   });
 
@@ -363,6 +364,7 @@
       save();
       render();
     }
+    resetBtn.blur();
   });
 
   render();
