@@ -345,6 +345,9 @@
       render();
     }
   });
+  customStep.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') customStep.blur(); // 입력 후 엔터로 확정되면 포커스를 해제해 이후 엔터/스페이스가 카운트로 이어지게 함
+  });
 
   goalInput.value = state.goal !== null ? state.goal : '';
   goalInput.addEventListener('click', function (e) { e.stopPropagation(); });
@@ -354,6 +357,9 @@
     state.goalHit = false;
     save();
     render();
+  });
+  goalInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') goalInput.blur();
   });
 
   resetBtn.addEventListener('click', function (e) {
